@@ -31,12 +31,6 @@
 	
 /*=======================================*/
 
-/*=============  INCLUDEAPP =============*/
-
-
-/*=======================================*/
-
-
 
 /*======================================================== Start_FUNCTION  ========================================================*/
 
@@ -148,7 +142,7 @@ void MCP2515_vSendMassage(u8 Copy_u8BufferId , u32 Copy_u32MassageId , u8 Copy_u
 	SPI_VidChipSelect(1) ;
 		/* Send Write Instruction */
 	SPI_U8MasterTransmit(WRITE_IS);
-		/* Send Address & must write value from ctrl reg and it will increase automatic it's u32 */
+		/* Send Address & must write value from ctrl reg and it will increase automatic it's u32. Here must be for buffer choise  */
 	SPI_U8MasterTransmit(TXB0CTRL);
 		/* You can writ value to choice priority the other bit not care 
 			Any value  but mandatory to write*/

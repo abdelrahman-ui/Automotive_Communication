@@ -39,7 +39,7 @@ SUBDIRS :=
 C_SRCS +=  \
 ../DIO_program.c \
 ../main.c \
-../MCP2515_r_program.c \
+../MCP2515_t_program.c \
 ../SPI_Program.c
 
 
@@ -52,25 +52,25 @@ ASM_SRCS +=
 OBJS +=  \
 DIO_program.o \
 main.o \
-MCP2515_r_program.o \
+MCP2515_t_program.o \
 SPI_Program.o
 
 OBJS_AS_ARGS +=  \
 DIO_program.o \
 main.o \
-MCP2515_r_program.o \
+MCP2515_t_program.o \
 SPI_Program.o
 
 C_DEPS +=  \
 DIO_program.d \
 main.d \
-MCP2515_r_program.d \
+MCP2515_t_program.d \
 SPI_Program.d
 
 C_DEPS_AS_ARGS +=  \
 DIO_program.d \
 main.d \
-MCP2515_r_program.d \
+MCP2515_t_program.d \
 SPI_Program.d
 
 OUTPUT_FILE_PATH +=Main_MCP2515.elf
@@ -101,7 +101,7 @@ LINKER_SCRIPT_DEP+=
 	@echo Finished building: $<
 	
 
-./MCP2515_r_program.o: .././MCP2515_r_program.c
+./MCP2515_t_program.o: .././MCP2515_t_program.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\include"  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega32 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\gcc\dev\atmega32" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

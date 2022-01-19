@@ -4,8 +4,8 @@
 ===========================   - Author: Abdelrahman_Magdy     ============================
 ===========================   - Version : _1_		          ============================
 ===========================   - Note :
-					                    *-
-					                    *-
+					*-
+					*-
 ========================================================================================*/ 
 
 /*======================================================================================
@@ -15,20 +15,17 @@
 /*=======================================================================================
           
             * Configration Type : 
-                                  - Prebuilt Config	    :	NO .
-                                  - Link Time Config	:	NO .
-                                  - Post Build Config	:	NO .
+                                  - Prebuilt Config	:	NO
+                                  - Link Time Config	:	NO
+                                  - Post Build Config	:	NO
 =========================================================================================*/
 
 #ifndef MCP2515_T_CONFIG_H_
 #define MCP2515_T_CONFIG_H_
 
 
- #define CNF1_REG   0X80
-
- #define CNF2_REG   0XB1
-
- #define CNF3_REG   0X05 
-
+#define CNF1_REG  0X80
+#define CNF2_REG  0XB1
+#define CNF3_REG  0X05 
 
 #endif /* MCP2515_T_CONFIG_H_ */

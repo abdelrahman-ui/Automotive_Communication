@@ -27,18 +27,118 @@
 /*============= INCLUDE HAL =============*/
 	#include "MCP2515_r_interface.h"
 	#include "MCP2515_r_private.h"
-	#include "MCP2515_r_config.h"
-	
+	#include "MCP2515_r_config.h"	
 /*=======================================*/
-
-/*=============  INCLUDEAPP =============*/
-
-
-/*=======================================*/
-
 
 
 /*======================================================== Start_FUNCTION  ========================================================*/
+
+/*
+ * Initialization :
+ *					- Set bit timming .
+ *					- Set Mask ID . 
+ *					- Enable interrput .
+*/
+ void MCP2515_vInitReceive(void)
+ {
+	 /* Must init SPI  */
+	 SPI_VidMasterInit();
+	 /* Reseat   */
+	 MCP2515_vReseat() ;
+	 /* Set configration mode and enable clk  */
+	 MCP2515_vWriteRegiter(CAN_CTRL , 0X84) ;
+	 /* Check the state changed or not read last 3 bit in canstate*/
+	 while(MCP2515_u8ReadRegiter(CAN_STAT>>5) !=MCP2515_MODE_CONFIG);
+	 /* Set Value of CNF1 & CNF2 & CNF3*/
+	 MCP2515_vSetBitTiming( CNF1_REG,CNF2_REG  ,CNF3_REG ) ;
+	
+	 /* Set Mask =0000 0000 SO Accept all */ 
+	 MCP2515_vSetMask( RXM0SIDH , 0X00000000 , 1 );
+	 MCP2515_vSetMask( RXM1SIDH , 0X00000000 , 1 );
+	
+	/* To enable interrput */
+	MCP2515_vWriteRegiter(CANINTE,  1<<0);
+	
+	/* Return to Normal mode To send and recive */
+	MCP2515_vSetMode(MCP2515_MODE_NORMAL) ;
+ }
+
+
+/*======================================================== END_FUNCTION  ========================================================*/
+
+
+/*======================================================== Start_FUNCTION  ========================================================*/
+/*
+  * Read resive buffer and clear flag .
+  * For One Buffer can recive  Filtter ( 0 : 5 ) 6 ID.
+  * Filtter mode ( Normal -->  All must be the same | Mask ( value & mask ) (only compare spasific bit) ) . 
+  * To resive all ID so no compare bit at mask so all mask 0 . 
+*/
+
+u8 readBuffer[14];
+void MCP2515_vResiveMessage(void)
+{
+	/* Enable SPI SS (Nude)  */
+	SPI_VidChipSelect(1) ;
+	/* Send Read Instruction */
+	SPI_U8MasterTransmit(READ_IS);
+	/* Send Address*/
+	SPI_U8MasterTransmit(RXB0CTRL);
+	/* Send dumy to resive 14 element*/
+	for(u8 i=0 ; i<14 ; i++)
+	{
+		readBuffer[i]=SPI_U8MasterTransmit(0);
+		
+	}
+	/* Disable SPI SS (Nude)  */
+	SPI_VidChipSelect(0);
+	/* Must clear flag */
+	MCP2515_vWriteRegiter(CANINTF , 0);
+}
+
+/*======================================================== END_FUNCTION  ========================================================*/
+ 
+/*======================================================== Start_FUNCTION  ========================================================*/ 
+/*
+ * The Rollover when resive buffer full so resive in anthor buffer 
+ */
+ void MCP2515_vSetRollOver(void)
+ {
+	 MCP2515_vModify(RXB0CTRL , 1<<3 , 1<<3 ) ;
+	 
+ }   
+/*======================================================== END_FUNCTION  ========================================================*/
+
+/*======================================================== Start_FUNCTION  ========================================================*/
+
+void MCP2515_vSetMask(u8 Copy_u8MaskAdress ,u32 Copy_u32Value ,u8 Copy_u8Extended  )
+{
+	/* Enable SPI SS (Nude)  */
+ SPI_VidChipSelect(1);
+   /* Send Write Instruction */
+ SPI_U8MasterTransmit(WRITE_IS);
+   /* Send Address*/
+ SPI_U8MasterTransmit(Copy_u8MaskAdress);
+   /* Write the value ( Normal ID OR Extended ) */
+  if(Copy_u8Extended )
+  {
+	  SPI_U8MasterTransmit((u8)(Copy_u32Value >> 3)) ;
+	  /* And 1 for Extended  */
+	  SPI_U8MasterTransmit((u8)(Copy_u32Value << 5) | ( 1<< 3) |(u8) (Copy_u32Value >> 27) ) ;
+	  SPI_U8MasterTransmit((u8)(Copy_u32Value >> 19)) ;
+	  SPI_U8MasterTransmit((u8)(Copy_u32Value << 11)) ;
+  }
+  else
+  {
+	 SPI_U8MasterTransmit((u8)(Copy_u32Value >> 3)) ;
+	 SPI_U8MasterTransmit((u8)(Copy_u32Value << 5)) ;
+  }
+   /* Disable SPI SS (Nude)  */
+   SPI_VidChipSelect(0);
+  }
+  
+/*======================================================== END_FUNCTION  ========================================================*/
+
 /*======================================================== Start_FUNCTION  ========================================================*/
 
 u8 MCP2515_u8ReadRegiter(u8 Copy_RegAdress)
@@ -60,7 +160,6 @@ u8 MCP2515_u8ReadRegiter(u8 Copy_RegAdress)
 /*======================================================== END_FUNCTION  ========================================================*/
 
 
-
 /*======================================================== Start_FUNCTION  ========================================================*/
 
 void MCP2515_vWriteRegiter(u8 Copy_RegAdress ,  u8 Copy_Data)
@@ -76,6 +175,7 @@ void MCP2515_vWriteRegiter(u8 Copy_RegAdress ,  u8 Copy_Data)
 	/* Disable SPI SS (Nude) */
 	SPI_VidChipSelect(0);
 }
+/*======================================================== END_FUNCTION  ========================================================*/
 
 /*======================================================== Start_FUNCTION  ========================================================*/
 void MCP2515_vReseat()
@@ -89,7 +189,6 @@ void MCP2515_vReseat()
 	
 }
 /*======================================================== END_FUNCTION  ========================================================*/
-
 
 
 /*======================================================== Start_FUNCTION  ========================================================*/
@@ -109,6 +208,7 @@ void MCP2515_vModify(u8 Copy_u8RegAdress , u8 Copy_u8Mask  ,u8 Copy_u8Data)
 	/* Disable SPI SS (Nude) */
 	SPI_VidChipSelect(0);
 }
+/*======================================================== END_FUNCTION  ========================================================*/
 
 /*======================================================== Start_FUNCTION  ========================================================*/
 
@@ -134,91 +234,9 @@ void MCP2515_vSetMode(u8 Copy_u8Mode)
 	/* Write only at last 3 bit ( 0XE0 : 0b1110 000)  & Sheft 5 untile pins of mode */
 	MCP2515_vModify(CAN_CTRL,0xE0,(Copy_u8Mode<<5));
 	/* Check the state changed or not read last 3 bit in canstate*/
-	while(MCP2515_u8ReadRegiter(CAN_STAT>>5) !=Copy_u8Mode);
+	while(MCP2515_vReadRegiter(CAN_STAT>>5) !=Copy_u8Mode);
 	
 	
 }
 
 /*======================================================== END_FUNCTION  ========================================================*/
-void MCP2515_vSetRollOver(void)
-{
-	 MCP2515_vModify(RXB0CTRL , 1<<3 , 1<<3);
-	
-}
-
-void MCP2515_vSetMaskR(u8 Copy_u8MaskAddress , u32 Copy_u32Value ,u8 Copy_u8IsExtended )
-{
-	/* Enable SPI SS (Nude)  */
-	SPI_VidChipSelect(1) ;
-	/* Send Read Instruction */
-	SPI_U8MasterTransmit(WRITE_IS);
-	/* Send Address of mask */
-	SPI_U8MasterTransmit(Copy_u8MaskAddress);
-	/* if you have extended id or not extended  */
-	if(Copy_u8IsExtended)
-	{
-		
-		SPI_U8MasterTransmit((u8) (Copy_u32Value >> 3) ) ;
-		SPI_U8MasterTransmit((u8) (Copy_u32Value << 5)  | (1<<3) |(u8)(Copy_u32Value >>27)) ;
-		SPI_U8MasterTransmit((u8) (Copy_u32Value >> 19) ) ;
-		SPI_U8MasterTransmit((u8) (Copy_u32Value << 11) ) ;	
-		
-	}
-	else
-	{
-		/* Now with ID High that take ftom 3 : 10 */
-		SPI_U8MasterTransmit((u8) (Copy_u32Value >> 3) ) ;
-		/* Now with ID Low 0 : 2*/
-		SPI_U8MasterTransmit((u8) (Copy_u32Value << 5) ) ;
-	}
-	
-	/* Disable SPI SS (Nude) */
-	SPI_VidChipSelect(0);
-}
-
-
-void MCP2515_vInitR()
-{
-	/* Must init SPI  */
-	SPI_VidMasterInit();
-	/* Reseat   */
-	MCP2515_vReseat() ;
-	/* Set configration mode and enable clk  */
-	MCP2515_vWriteRegiter(CAN_CTRL , 0X84) ;
-	/* Check the state changed or not read last 3 bit in canstate*/
-	while( MCP2515_u8ReadRegiter(CAN_STAT>>5) !=MCP2515_MODE_CONFIG);
-	/* Set Value of CNF1 & CNF2 & CNF3*/
-	MCP2515_vSetBitTiming(0X80 , 0XB1 , 0X05) ;
-	/* Set Mask Accept all */
-	MCP2515_vSetMaskR(RXM0SIDH ,0X00000000 ,1 );
-	MCP2515_vSetMaskR(RXM1SIDH ,0X00000000 ,1 );
-	/* Enable Interrupt */
-	MCP2515_vWriteRegiter(CANINTE , 1<<0);
-	/* Set Normal Mode */
-	MCP2515_vSetMode(MCP2515_MODE_NORMAL);
-	
-}
-
-
-
-
-u8 array[14];
-void MCP2515_vRecive(void)
-{
-	 /* Enable SPI SS (Nude)  */
-	 SPI_VidChipSelect(1) ;
-	 /* Send Read Instruction */
-	 SPI_U8MasterTransmit(READ_IS);
-	 /* Send Address*/
-	 SPI_U8MasterTransmit(RXB0CTRL);
-	 /* Send Dumy value to recive 14 byte 14 Reg */
-	 for(u8 Local_u8Count = 0 ; Local_u8Count <14 ; Local_u8Count ++)
-	 {
-		array[Local_u8Count] = SPI_U8MasterTransmit(0); 
-	 }
-	 /* Disable SPI SS (Nude) */
-	 SPI_VidChipSelect(0);
-	 /* Clear Flag */
-	 MCP2515_vWriteRegiter(CANINTF , 0);
-	  
-}

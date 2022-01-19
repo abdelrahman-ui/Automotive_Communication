@@ -31,13 +31,6 @@
 	
 /*=======================================*/
 
-/*=============  INCLUDEAPP =============*/
-
-
-/*=======================================*/
-
-
-
 /*======================================================== Start_FUNCTION  ========================================================*/
 /*======================================================== Start_FUNCTION  ========================================================*/
 
@@ -117,11 +110,11 @@ void MCP2515_vSetBitTiming(u8 Copy_u8Cnf1Val , u8 Copy_u8Cnf2Val ,u8 Copy_u8Cnf3
 	/* Change mode to configration mode  */
 	
 	/* Write on CNF1 */
-	MCP2515_vReadRegiter(CNF1 ,Copy_u8Cnf1Val );
+	MCP2515_vWriteRegiter(CNF1 ,Copy_u8Cnf1Val );
 	/* Write on CNF2 */
-	MCP2515_vReadRegiter(CNF2 ,Copy_u8Cnf2Val );
+	MCP2515_vWriteRegiter(CNF2 ,Copy_u8Cnf2Val );
 	/* Write on CNF3 */
-	MCP2515_vReadRegiter(CNF3 ,Copy_u8Cnf3Val );
+	MCP2515_vWriteRegiter(CNF3 ,Copy_u8Cnf3Val );
 	
 }
 /*======================================================== END_FUNCTION  ========================================================*/

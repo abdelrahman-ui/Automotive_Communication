@@ -74,7 +74,7 @@ void SPI_VidSlaveInit(void)
 
 	SPCR = temp_SPCR;
 }
-/* Mask ss Low so enable it */
+
 void SPI_VidChipSelect(u8 state)
 {
 	if(state == 1)
